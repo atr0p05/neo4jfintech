@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Portfolio Management Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Glassmorphism effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Gradient animations */
+        .gradient-animation {
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: all 0.3s ease;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Animated cards */
+        .hover-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        /* Chat bubble animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .chat-message {
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        /* Pulse animation for live indicators */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="{ 
+    sidebarOpen: true, 
+    currentPage: 'dashboard',
+    chatOpen: false,
+    messages: [],
+    optimizationResults: null,
+    riskAnalysisData: null
+}">
+    <!-- Modern Sidebar -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div x-show="sidebarOpen" class="w-72 bg-white shadow-2xl relative z-50">
+            <div class="gradient-animation h-2"></div>
+            <div class="p-6">
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800">InvestPro AI</h1>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="space-y-2">
+                    <a @click="currentPage = 'dashboard'" 
+                       :class="currentPage === 'dashboard' ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600' : 'text-gray-600 hover:bg-gray-50'"
+                       class="flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-home w-5"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    
+                    <a @click="currentPage = 'portfolio'" 
+                       :class="currentPage === 'portfolio' ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600' : 'text-gray-600 hover:bg-gray-50'"
+                       class="flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-briefcase w-5"></i>
+                        <span class="font-medium">Portfolio</span>
+                    </a>
+                    
+                    <a @click="currentPage = 'optimization'" 
+                       :class="currentPage === 'optimization' ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600' : 'text-gray-600 hover:bg-gray-50'"
+                       class="flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-cog w-5"></i>
+                        <span class="font-medium">Optimization</span>
+                        <span class="ml-auto bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">AI</span>
+                    </a>
+                    
+                    <a @click="currentPage = 'risk'" 
+                       :class="currentPage === 'risk' ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600' : 'text-gray-600 hover:bg-gray-50'"
+                       class="flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-shield-alt w-5"></i>
+                        <span class="font-medium">Risk Analysis</span>
+                    </a>
+                    
+                    <a @click="currentPage = 'ai-advisor'" 
+                       :class="currentPage === 'ai-advisor' ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600' : 'text-gray-600 hover:bg-gray-50'"
+                       class="flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all">
+                        <i class="fas fa-robot w-5"></i>
+                        <span class="font-medium">AI Advisor</span>
+                        <span class="ml-auto bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full pulse">Live</span>
+                    </a>
+                </nav>
+                
+                <!-- User Profile -->
+                <div class="absolute bottom-6 left-6 right-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center space-x-3">
+                            <img src="https://ui-avatars.com/api/?name=John+Doe&background=667eea&color=fff" 
+                                 class="w-10 h-10 rounded-full">
+                            <div>
+                                <p class="font-medium text-gray-800">John Doe</p>
+                                <p class="text-sm text-gray-500">Premium Plan</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Top Bar -->
+            <div class="bg-white shadow-sm px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800" x-text="currentPage.charAt(0).toUpperCase() + currentPage.slice(1).replace('-', ' ')"></h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Search -->
+                    <div class="relative">
+                        <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 bg-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative p-2 text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <!-- AI Chat Toggle -->
+                    <button @click="chatOpen = !chatOpen" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transform hover:scale-105">
+                        <i class="fas fa-comments mr-2"></i>
+                        AI Chat
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Page Content -->
+            <div class="p-8">
+                <!-- Dashboard -->
+                <div x-show="currentPage === 'dashboard'" class="space-y-6">
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-blue-600"></i>
+                                </div>
+                                <span class="text-green-500 text-sm font-medium">+12.5%</span>
+                            </div>
+                            <h3 class="text-gray-500 text-sm">Total Portfolio Value</h3>
+                            <p class="text-2xl font-bold text-gray-800">$1,250,000</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-green-600"></i>
+                                </div>
+                                <span class="text-green-500 text-sm font-medium">+8.3%</span>
+                            </div>
+                            <h3 class="text-gray-500 text-sm">Annual Return</h3>
+                            <p class="text-2xl font-bold text-gray-800">15.8%</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-purple-600"></i>
+                                </div>
+                                <span class="text-yellow-500 text-sm font-medium">Medium</span>
+                            </div>
+                            <h3 class="text-gray-500 text-sm">Risk Score</h3>
+                            <p class="text-2xl font-bold text-gray-800">6.5/10</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-balance-scale text-orange-600"></i>
+                                </div>
+                                <span class="text-blue-500 text-sm font-medium">Optimized</span>
+                            </div>
+                            <h3 class="text-gray-500 text-sm">Sharpe Ratio</h3>
+                            <p class="text-2xl font-bold text-gray-800">1.23</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Portfolio Performance</h3>
+                            <canvas id="performanceChart" height="200"></canvas>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Asset Allocation</h3>
+                            <canvas id="allocationChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-arrow-up text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">Portfolio Optimized</p>
+                                        <p class="text-sm text-gray-500">Sharpe ratio improved to 1.23</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm text-gray-500">2 hours ago</span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-robot text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">AI Recommendation</p>
+                                        <p class="text-sm text-gray-500">Consider increasing tech allocation</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm text-gray-500">5 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Portfolio Optimization Page -->
+                <div x-show="currentPage === 'optimization'" class="space-y-6">
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-8 text-white">
+                        <h2 class="text-2xl font-bold mb-2">AI-Powered Portfolio Optimization</h2>
+                        <p class="opacity-90">Use advanced algorithms to maximize returns while managing risk</p>
+                    </div>
+                    
+                    <!-- Optimization Controls -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-6">Optimization Parameters</h3>
+                            
+                            <div class="space-y-6">
+                                <!-- Model Selection -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Optimization Model</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                        <option>Markowitz Mean-Variance</option>
+                                        <option>Black-Litterman</option>
+                                        <option>Risk Parity</option>
+                                        <option>Machine Learning Enhanced</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Risk Tolerance -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Risk Tolerance</label>
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-sm text-gray-500">Conservative</span>
+                                        <input type="range" min="1" max="10" value="5" class="flex-1">
+                                        <span class="text-sm text-gray-500">Aggressive</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Constraints -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Min Position Size</label>
+                                        <input type="number" value="2" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Position Size</label>
+                                        <input type="number" value="25" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+                                
+                                <!-- Optimize Button -->
+                                <button @click="optimizationResults = { expectedReturn: 0.158, volatility: 0.142, sharpeRatio: 1.45 }" 
+                                        class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all">
+                                    <i class="fas fa-magic mr-2"></i>
+                                    Run AI Optimization
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Current vs Optimized -->
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-6">Optimization Preview</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="text-center" x-show="!optimizationResults">
+                                    <i class="fas fa-chart-pie text-6xl text-gray-300 mb-4"></i>
+                                    <p class="text-gray-500">Run optimization to see results</p>
+                                </div>
+                                
+                                <div x-show="optimizationResults" class="space-y-4">
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-sm text-gray-600">Expected Return</span>
+                                            <span class="text-green-600 font-semibold">+3.3%</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-gray-500">12.5%</span>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <span class="text-green-600 font-bold">15.8%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-sm text-gray-600">Risk (Volatility)</span>
+                                            <span class="text-green-600 font-semibold">-1.0%</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-gray-500">15.2%</span>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <span class="text-green-600 font-bold">14.2%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-sm text-gray-600">Sharpe Ratio</span>
+                                            <span class="text-green-600 font-semibold">+0.22</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-gray-500">1.23</span>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <span class="text-green-600 font-bold">1.45</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <button class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 mt-4">
+                                        <i class="fas fa-check mr-2"></i>
+                                        Apply Optimization
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Optimization Results -->
+                    <div x-show="optimizationResults" class="bg-white rounded-xl p-6 shadow-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Recommended Portfolio Allocation</h3>
+                        <canvas id="optimizedAllocation" height="100"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Risk Analysis Page -->
+                <div x-show="currentPage === 'risk'" class="space-y-6">
+                    <div class="bg-gradient-to-r from-red-500 to-orange-600 rounded-xl p-8 text-white">
+                        <h2 class="text-2xl font-bold mb-2">Comprehensive Risk Analysis</h2>
+                        <p class="opacity-90">Monitor and manage portfolio risk with advanced analytics</p>
+                    </div>
+                    
+                    <!-- Risk Metrics Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-medium text-gray-600">Value at Risk (95%)</h4>
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-red-600">-$87,500</p>
+                            <p class="text-sm text-gray-500 mt-2">Potential 1-day loss</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-medium text-gray-600">Beta</h4>
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-gray-800">0.85</p>
+                            <p class="text-sm text-gray-500 mt-2">Market sensitivity</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-medium text-gray-600">Max Drawdown</h4>
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-orange-600">-12.3%</p>
+                            <p class="text-sm text-gray-500 mt-2">Worst historical loss</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg hover-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-medium text-gray-600">Diversification</h4>
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-green-600">8.5/10</p>
+                            <p class="text-sm text-gray-500 mt-2">Portfolio diversity score</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Risk Distribution</h3>
+                            <canvas id="riskDistribution" height="200"></canvas>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Correlation Matrix</h3>
+                            <canvas id="correlationMatrix" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Stress Testing -->
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Stress Test Scenarios</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-800 mb-2">Market Crash (-20%)</h4>
+                                <p class="text-2xl font-bold text-red-600">-$175,000</p>
+                                <p class="text-sm text-gray-500">Portfolio impact: -14%</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-800 mb-2">Interest Rate +2%</h4>
+                                <p class="text-2xl font-bold text-orange-600">-$62,500</p>
+                                <p class="text-sm text-gray-500">Portfolio impact: -5%</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-800 mb-2">USD Depreciation -10%</h4>
+                                <p class="text-2xl font-bold text-yellow-600">-$37,500</p>
+                                <p class="text-sm text-gray-500">Portfolio impact: -3%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Advisor Page -->
+                <div x-show="currentPage === 'ai-advisor'" class="h-full">
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl p-8 text-white mb-6">
+                        <h2 class="text-2xl font-bold mb-2">AI Investment Advisor</h2>
+                        <p class="opacity-90">Get personalized investment advice powered by advanced AI</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg" style="height: calc(100vh - 300px);">
+                        <div class="p-6 border-b">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-robot text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-800">AI Investment Assistant</h3>
+                                        <p class="text-sm text-green-500">Online</p>
+                                    </div>
+                                </div>
+                                <button class="text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="h-96 overflow-y-auto p-6 space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-robot text-purple-600 text-sm"></i>
+                                </div>
+                                <div class="bg-gray-100 rounded-lg p-4 max-w-md chat-message">
+                                    <p class="text-gray-800">Hello! I'm your AI investment advisor. I can help you with:</p>
+                                    <ul class="mt-2 space-y-1 text-sm text-gray-600">
+                                        <li>• Portfolio optimization strategies</li>
+                                        <li>• Risk assessment and management</li>
+                                        <li>• Market analysis and insights</li>
+                                        <li>• Investment recommendations</li>
+                                    </ul>
+                                    <p class="mt-2 text-gray-800">What would you like to know?</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6 border-t">
+                            <div class="flex items-center space-x-3">
+                                <input type="text" 
+                                       placeholder="Ask me anything about your investments..." 
+                                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                       @keyup.enter="sendMessage($event.target.value); $event.target.value = ''">
+                                <button class="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transform hover:scale-105">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating AI Chat -->
+    <div x-show="chatOpen" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform scale-90"
+         x-transition:enter-end="opacity-100 transform scale-100"
+         class="fixed bottom-4 right-4 w-96 bg-white rounded-xl shadow-2xl z-50">
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-t-xl flex items-center justify-between">
+            <h3 class="font-semibold">AI Assistant</h3>
+            <button @click="chatOpen = false" class="text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="h-96 overflow-y-auto p-4">
+            <div class="space-y-4">
+                <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                    <p class="text-sm">How can I help you optimize your portfolio today?</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4 border-t">
+            <div class="flex items-center space-x-2">
+                <input type="text" placeholder="Type your message..." class="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button class="bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600">
+                    <i class="fas fa-paper-plane text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Performance Chart
+            const performanceCtx = document.getElementById('performanceChart');
+            if (performanceCtx) {
+                new Chart(performanceCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Portfolio Value',
+                            data: [1000000, 1050000, 1080000, 1120000, 1180000, 1250000],
+                            borderColor: 'rgb(99, 102, 241)',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Allocation Chart
+            const allocationCtx = document.getElementById('allocationChart');
+            if (allocationCtx) {
+                new Chart(allocationCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Stocks', 'Bonds', 'Real Estate', 'Commodities', 'Cash'],
+                        datasets: [{
+                            data: [45, 25, 15, 10, 5],
+                            backgroundColor: [
+                                'rgb(99, 102, 241)',
+                                'rgb(34, 197, 94)',
+                                'rgb(251, 146, 60)',
+                                'rgb(147, 51, 234)',
+                                'rgb(107, 114, 128)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
